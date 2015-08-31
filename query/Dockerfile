@@ -1,4 +1,4 @@
-FROM openzipkin/zipkin-base:1.3
+FROM quay.io/openzipkin/zipkin-base:base-1.3.0-rc1
 MAINTAINER OpenZipkin "http://zipkin.io/"
 
 RUN curl -SL $ZIPKIN_REPO/io/zipkin/zipkin-query-service/$ZIPKIN_VERSION/zipkin-query-service-$ZIPKIN_VERSION-all.jar > zipkin-query.jar
