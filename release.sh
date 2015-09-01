@@ -14,6 +14,7 @@ service_images="zipkin-cassandra zipkin-collector zipkin-query zipkin-web"
 
 # Read input and env
 version="$1"
+git_remote="${GIT_REMOTE:-origin}"
 started_at=$(date +%s)
 
 prefix() {
@@ -42,7 +43,7 @@ create-and-push-tags () {
     for tag in $tags; do
         echo "Creating and pushing tag $tag..."
         git tag "$tag" --force
-        git push origin "$tag" --force
+        git push "$git_remote" "$tag" --force
     done
 }
 
