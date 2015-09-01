@@ -4,16 +4,13 @@ set -ueo pipefail
 
 # Constants
 api="https://quay.io/api/v1"
-docker_organization="openzipkin"
-# Base image(s)
-base_dirs="base"
-base_images="zipkin-base"
-# Service image(s)
-service_dirs="cassandra collector query web"
-service_images="zipkin-cassandra zipkin-collector zipkin-query zipkin-web"
 
 # Read input and env
 version="$1"
+base_images="$BASE_IMAGES"
+service_images="$SERVICE_IMAGES"
+docker_organization="$DOCKER_ORGANIZATION"
+oauth2_token="$OAUTH2_TOKEN"
 git_remote="${GIT_REMOTE:-origin}"
 started_at=$(date +%s)
 
@@ -38,13 +35,11 @@ bump-zipkin-version () {
     git push
 }
 
-create-and-push-tags () {
-    local tags="$@"
-    for tag in $tags; do
-        echo "Creating and pushing tag $tag..."
-        git tag "$tag" --force
-        git push "$git_remote" "$tag" --force
-    done
+create-and-push-tag () {
+    local tag="$1"
+    echo "Creating and pushing tag $tag..."
+    git tag "$tag" --force
+    git push "$git_remote" "$tag" --force
 }
 
 fetch-last-build () {
@@ -116,6 +111,33 @@ wait-for-builds () {
     done
 }
 
+sync-quay-tag () {
+    local repo="${docker_organization}/$1"
+    local reference_tag="$2"
+    local tag_to_move="$3"
+
+    echo "Syncing tag ${tag_to_move} to ${reference_tag} on ${repo}"
+    image_id="$(curl -s "${api}/repository/${repo}/tag/${reference_tag}/images" | jq '.images | sort_by(-.sort_index)[0].id' -r)"
+    echo "Image id is ${image_id}"
+    curl -s "${api}/repository/${repo}/tag/${tag_to_move}" \
+         -H "Authorization: Bearer $oauth2_token" \
+         -H "Content-Type: application/json" \
+         -XPUT -d "{\"image\": \"$image_id\"}"
+    echo
+}
+
+sync-quay-tags () {
+    local subminor_tag="$1"; shift
+    local minor_tag="$1"; shift
+    local major_tag="$1"; shift
+    local images="$@"
+
+    for image in $images; do
+        sync-quay-tag "$image" "$subminor_tag" "$minor_tag"
+        sync-quay-tag "$image" "$subminor_tag" "$major_tag"
+    done
+}
+
 bump-dockerfiles () {
     local tag="$1"; shift
     local images="$@"
@@ -167,17 +189,18 @@ main () {
     base_tag="base-$version"
 
     action_plan="
-    bump-zipkin-version     $version $base_dirs                 2>&1 | prefix bump-zipkin-version
-    create-and-push-tags    $base_tag                           2>&1 | prefix tag-base-image
-    wait-for-builds         $base_tag $base_images              2>&1 | prefix wait-for-base-build
-    bump-dockerfiles        $base_tag $service_dirs             2>&1 | prefix bump-dockerfiles
-    create-and-push-tags    $subminor_tag $minor_tag $major_tag 2>&1 | prefix tag-service-images
-    wait-for-builds         $subminor_tag $service_images       2>&1 | prefix wait-for-service-builds
-    sync-to-dockerhub       $base_tag $base_images              2>&1 | prefix sync-base-image-to-dockerhub
-    sync-to-dockerhub       $subminor_tag $service_images       2>&1 | prefix sync-${subminor_tag}-to-dockerhub
-    sync-to-dockerhub       $minor_tag $service_images          2>&1 | prefix sync-${minor_tag}-to-dockerhub
-    sync-to-dockerhub       $major_tag $service_images          2>&1 | prefix sync-${major_tag}-to-dockerhub
-    bump-docker-compose-yml $subminor_tag $service_images       2>&1 | prefix bump-docker-compose-yml
+  # bump-zipkin-version     $version $base_images                               2>&1 | prefix bump-zipkin-version
+    create-and-push-tag     $base_tag                                           2>&1 | prefix tag-base-image
+    wait-for-builds         $base_tag $base_images                              2>&1 | prefix wait-for-base-build
+    bump-dockerfiles        $base_tag $service_images                           2>&1 | prefix bump-dockerfiles
+    create-and-push-tag     $subminor_tag                                       2>&1 | prefix tag-service-images
+    wait-for-builds         $subminor_tag $service_images                       2>&1 | prefix wait-for-service-builds
+    sync-quay-tags          $subminor_tag $minor_tag $major_tag $service_images 2>&1 | prefix sync-quay-tags
+    sync-to-dockerhub       $base_tag $base_images                              2>&1 | prefix sync-base-image-to-dockerhub
+    sync-to-dockerhub       $subminor_tag $service_images                       2>&1 | prefix sync-${subminor_tag}-to-dockerhub
+    sync-to-dockerhub       $minor_tag $service_images                          2>&1 | prefix sync-${minor_tag}-to-dockerhub
+    sync-to-dockerhub       $major_tag $service_images                          2>&1 | prefix sync-${major_tag}-to-dockerhub
+    bump-docker-compose-yml $subminor_tag $service_images                       2>&1 | prefix bump-docker-compose-yml
     "
 
     echo "Starting release $version. Action plan:"
