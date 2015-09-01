@@ -4,15 +4,20 @@ set -ueo pipefail
 
 # Constants
 api="https://quay.io/api/v1"
+started_at=$(date +%s)
 
-# Read input and env
+## Read input and env
 version="$1"
+# Base images
 base_images="$BASE_IMAGES"
+base_dirs="${BASE_DIRS:-$base_images}"
+# Service images
 service_images="$SERVICE_IMAGES"
+service_dirs="${SERVICE_DIRS:-$service_images}"
+# Remotes, auth
 docker_organization="$DOCKER_ORGANIZATION"
 oauth2_token="$OAUTH2_TOKEN"
 git_remote="${GIT_REMOTE:-origin}"
-started_at=$(date +%s)
 
 prefix() {
     while read line; do
@@ -189,10 +194,10 @@ main () {
     base_tag="base-$version"
 
     action_plan="
-  # bump-zipkin-version     $version $base_images                               2>&1 | prefix bump-zipkin-version
+  # bump-zipkin-version     $version $base_dirs                                 2>&1 | prefix bump-zipkin-version
     create-and-push-tag     $base_tag                                           2>&1 | prefix tag-base-image
     wait-for-builds         $base_tag $base_images                              2>&1 | prefix wait-for-base-build
-    bump-dockerfiles        $base_tag $service_images                           2>&1 | prefix bump-dockerfiles
+    bump-dockerfiles        $base_tag $service_dirs                             2>&1 | prefix bump-dockerfiles
     create-and-push-tag     $subminor_tag                                       2>&1 | prefix tag-service-images
     wait-for-builds         $subminor_tag $service_images                       2>&1 | prefix wait-for-service-builds
     sync-quay-tags          $subminor_tag $minor_tag $major_tag $service_images 2>&1 | prefix sync-quay-tags
