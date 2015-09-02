@@ -196,11 +196,13 @@ sync-to-dockerhub () {
 
 main () {
     # Check that the version is something we like
-    if ! echo "$version" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' -q; then
+    if ! echo "$version" | grep -E '^release-[0-9]+\.[0-9]+\.[0-9]+$' -q; then
         echo "Usage: $0 <version>"
-        echo "Where version must be <major>.<minor>.<subminor>"
+        echo "Where version must be release-<major>.<minor>.<subminor>"
         exit 1
     fi
+
+    version="$(echo ${version} | sed -e 's/^release-//')"
 
     # The git tags we'll create
     major_tag=$(echo "$version" | cut -f1 -d. -s)

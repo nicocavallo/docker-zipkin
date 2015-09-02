@@ -1,0 +1,31 @@
+sudo: required
+
+services:
+  - docker
+
+# We don't actually use anything java, but this feels the least jarring "language"
+language: java
+
+# Special tags are used to trigger these Travis CI runs
+branches:
+  only:
+    - /^release-.*$/
+
+# jq is used in release.sh to parse the responses of the quay.io API
+install:
+  - apt-get install jq
+
+# The release process pushes to GitHub multiple times; will use these credentials
+before_script:
+  - openssl aes-256-cbc -K $encrypted_1f60458c9a9e_key -iv $encrypted_1f60458c9a9e_iv -in .travis/deploy_key.enc -out .travis/deploy_key -d
+  - ssh-add .travis/deploy_key
+
+# The release process syncs minor and major version tags to the newly built subminor version tag
+# via the quay.io API, using these credentials.
+env:
+  global:
+    secure: acmhzKdohRCGlYnUISPlA2uXOeq+YhKJrLCr8wH9sQmb4mX+IuxxidxTxcqpKPD/Mi5YbAvVVPbWU5F763EAPkbMgI2Gk0HObdRSNyx0yrJ4aTBGuQRCz1Wmd7UFoILm4w+XWcZTnd3xXguEFliqYxjNoIuhCF21A6xEFpJotgs=
+
+# Also known as doit.sh
+script: ./release.sh $TRAVIS_TAG
+
