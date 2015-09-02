@@ -24,8 +24,6 @@ before_script:
   - ssh-add .travis/deploy_key
   # We also need to use a write-able git remote
   - git remote set-url origin "git@github.com:openzipkin/docker-zipkin.git"
-  # Log in to Docker Hub, needed to mirror images built on quay.io
-  - docker login -e abesto0+docker-zipkin-deployer@gmail.com -u dockerzipkindeployer -p "$DOCKERHUB_PASSWORD"
 
 env:
   global:
@@ -37,6 +35,11 @@ env:
     # TODO This needs to be removed once the PR containing this is merged
     - TARGET_GIT_BRANCH=travis
 
-# Also known as doit.sh
-script: ./release.sh $TRAVIS_TAG
+script:
+ # Log in to Docker Hub, needed to mirror images built on quay.io
+ - docker login -e abesto0+docker-zipkin-deployer@gmail.com -u dockerzipkindeployer -p "$DOCKERHUB_PASSWORD"
+ - docker pull openzipkin/zipkin-base
+ - docker push openzipkin/zipkin-base
+ # Also known as doit.sh
+ - ./release.sh $TRAVIS_TAG
 
