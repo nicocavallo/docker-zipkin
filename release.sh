@@ -30,7 +30,7 @@ api="https://quay.io/api/v1"
 started_at=$($date +%s)
 
 ## Read input and env
-version="$1"
+release_tag="$1"
 # Base images
 base_images="${BASE_IMAGES:-zipkin-base}"
 base_dirs="${BASE_DIRS:-base}"
@@ -41,11 +41,16 @@ service_dirs="${SERVICE_DIRS:-cassandra collector query web}"
 docker_organization="${DOCKER_ORGANIZATION:-openzipkin}"
 quayio_oauth2_token="$QUAYIO_OAUTH2_TOKEN"
 git_remote="${GIT_REMOTE:-origin}"
+target_git_branch="${TARGET_GIT_BRANCH:-master}"
 
 prefix() {
     while read line; do
         echo "[$($date +"%x %T")][${1}] $line"
     done
+}
+
+checkout-target-branch () {
+    git checkout -B "$target_git_branch"
 }
 
 bump-zipkin-version () {
@@ -196,13 +201,13 @@ sync-to-dockerhub () {
 
 main () {
     # Check that the version is something we like
-    if ! echo "$version" | grep -E '^release-[0-9]+\.[0-9]+\.[0-9]+$' -q; then
-        echo "Usage: $0 <version>"
-        echo "Where version must be release-<major>.<minor>.<subminor>"
+    if ! echo "$release_tag" | grep -E '^release-[0-9]+\.[0-9]+\.[0-9]+$' -q; then
+        echo "Usage: $0 <release_tag>"
+        echo "Where release_tag must be release-<major>.<minor>.<subminor>"
         exit 1
     fi
 
-    version="$(echo ${version} | sed -e 's/^release-//')"
+    version="$(echo ${release_tag} | sed -e 's/^release-//')"
 
     # The git tags we'll create
     major_tag=$(echo "$version" | cut -f1 -d. -s)
@@ -211,6 +216,7 @@ main () {
     base_tag="base-$version"
 
     action_plan="
+    checkout-target-branch                                                      2>&1 | prefix checkout-target-branch
     bump-zipkin-version     $version $base_dirs                                 2>&1 | prefix bump-zipkin-version
     create-and-push-tag     $base_tag                                           2>&1 | prefix tag-base-image
     wait-for-builds         $base_tag $base_images                              2>&1 | prefix wait-for-base-build
