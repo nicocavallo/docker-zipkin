@@ -50,22 +50,33 @@ prefix() {
 }
 
 checkout-target-branch () {
+    git fetch "$git_remote" "$target_git_branch"
     git checkout -B "$target_git_branch"
 }
 
 bump-zipkin-version () {
     local version="$1"; shift
     local images="$@"
+    local modified=false
+
     for image in $images; do
         echo "Bumping ZIPKIN_VERSION in the Dockerfile of $image..."
         dockerfile="${image}/Dockerfile"
         sed -i.bak -e "s/ENV ZIPKIN_VERSION .*/ENV ZIPKIN_VERSION ${version}/" "$dockerfile"
+        if diff "${dockerfile}.bak" "${dockerfile}" > /dev/null; then
+            modified=true
+        fi
         rm "${dockerfile}.bak"
         git add "$dockerfile"
     done
 
-    git commit -m "Bump ZIPKIN_VERSION to $version"
-    git push
+    if "$modified"; then
+        git commit -m "Bump ZIPKIN_VERSION to $version"
+        git push
+    else
+        echo "Dockerfiles were already pinned to version ${version} of the base image, no commit to make"
+    fi
+
 }
 
 create-and-push-tag () {
@@ -231,7 +242,7 @@ main () {
     "
 
     echo "Starting release $version. Action plan:"
-    echo "$action_plan" | sed -e 's/ *2>&1 \| prefix.*//'
+    echo "$action_plan" | sed -e 's/ *2>&1.*//'
 
     eval "$action_plan"
 
