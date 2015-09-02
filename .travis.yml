@@ -16,11 +16,12 @@ install:
   - sudo wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 -O /usr/local/bin/jq
   - sudo chmod o+x /usr/local/bin/jq
 
-# The release process pushes to GitHub multiple times; will use these credentials
 before_script:
+  # The release process pushes to GitHub multiple times; will use these credentials
   - openssl aes-256-cbc -K $encrypted_1f60458c9a9e_key -iv $encrypted_1f60458c9a9e_iv -in .travis/deploy_key.enc -out .travis/deploy_key -d
   - eval "$(ssh-agent)"
   - ssh-add .travis/deploy_key
+  # Log in to Docker Hub, needed to mirror images built on quay.io
   - docker login -e abesto0+docker-zipkin-deployer@gmail.com -u dockerzipkindeployer -p "$DOCKERHUB_PASSWORD"
 
 env:
