@@ -20,12 +20,15 @@ install:
 before_script:
   - openssl aes-256-cbc -K $encrypted_1f60458c9a9e_key -iv $encrypted_1f60458c9a9e_iv -in .travis/deploy_key.enc -out .travis/deploy_key -d
   - ssh-add .travis/deploy_key
+  - docker login -e abesto0+docker-zipkin-deployer@gmail.com -u dockerzipkindeployer -p "$DOCKERHUB_PASSWORD"
 
-# The release process syncs minor and major version tags to the newly built subminor version tag
-# via the quay.io API, using these credentials.
 env:
   global:
-    secure: acmhzKdohRCGlYnUISPlA2uXOeq+YhKJrLCr8wH9sQmb4mX+IuxxidxTxcqpKPD/Mi5YbAvVVPbWU5F763EAPkbMgI2Gk0HObdRSNyx0yrJ4aTBGuQRCz1Wmd7UFoILm4w+XWcZTnd3xXguEFliqYxjNoIuhCF21A6xEFpJotgs=
+    # The release process syncs minor and major version tags to the newly built subminor version tag
+    # via the quay.io API, using these credentials.
+    secure: "acmhzKdohRCGlYnUISPlA2uXOeq+YhKJrLCr8wH9sQmb4mX+IuxxidxTxcqpKPD/Mi5YbAvVVPbWU5F763EAPkbMgI2Gk0HObdRSNyx0yrJ4aTBGuQRCz1Wmd7UFoILm4w+XWcZTnd3xXguEFliqYxjNoIuhCF21A6xEFpJotgs="
+    # The release process pushes images to Docker Hub, using these credentials
+    secure: "Od7vv7FA1dUiu2cUanKwXefetOxKeKJfmFho7SAt6tC3itaMRiRnAjDn2xMv7wA+z9WXfBI8RDjm+JhOR6lrqg9tfhb5dknWa10sxCXGLz0jW8mVH57i/GuJ+Omv7I6gIbIaV63SfsflGQuCQNt8V0u8Dm4WxTBTqwaXeZlzMNY="
 
 # Also known as doit.sh
 script: ./release.sh $TRAVIS_TAG
