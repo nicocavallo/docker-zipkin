@@ -29,9 +29,9 @@ env:
   global:
     # The release process syncs minor and major version tags to the newly built subminor version tag
     # via the quay.io API, using these credentials.
-    secure: "acmhzKdohRCGlYnUISPlA2uXOeq+YhKJrLCr8wH9sQmb4mX+IuxxidxTxcqpKPD/Mi5YbAvVVPbWU5F763EAPkbMgI2Gk0HObdRSNyx0yrJ4aTBGuQRCz1Wmd7UFoILm4w+XWcZTnd3xXguEFliqYxjNoIuhCF21A6xEFpJotgs="
+    - secure: "acmhzKdohRCGlYnUISPlA2uXOeq+YhKJrLCr8wH9sQmb4mX+IuxxidxTxcqpKPD/Mi5YbAvVVPbWU5F763EAPkbMgI2Gk0HObdRSNyx0yrJ4aTBGuQRCz1Wmd7UFoILm4w+XWcZTnd3xXguEFliqYxjNoIuhCF21A6xEFpJotgs="
     # The release process pushes images to Docker Hub, using these credentials
-    secure: "c6OUybEaMzU5aBtl9sNAyV60j4VqxPWMxvmpk8VUQmKz1qRXh/3BOVNTvBCrWQHa/rzhMOxSPQZes01ZNcYMo3XykQOcNf6hwqcobeAMkK6Ji0eaw4sOJ1IVneUI1SvseewD53KOa3hrrlY2wI1cR6SJO+5G7TSuhfZiQ9wMS7E="
+    - secure: "c6OUybEaMzU5aBtl9sNAyV60j4VqxPWMxvmpk8VUQmKz1qRXh/3BOVNTvBCrWQHa/rzhMOxSPQZes01ZNcYMo3XykQOcNf6hwqcobeAMkK6Ji0eaw4sOJ1IVneUI1SvseewD53KOa3hrrlY2wI1cR6SJO+5G7TSuhfZiQ9wMS7E="
 
 # Also known as doit.sh
 script: ./release.sh $TRAVIS_TAG
