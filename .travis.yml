@@ -14,7 +14,7 @@ branches:
 # jq is used in release.sh to parse the responses of the quay.io API
 install:
   - sudo wget https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 -O /usr/local/bin/jq
-  - chmod o+x /usr/local/bin/jq
+  - sudo chmod o+x /usr/local/bin/jq
 
 # The release process pushes to GitHub multiple times; will use these credentials
 before_script:
