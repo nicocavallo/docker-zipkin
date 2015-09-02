@@ -35,9 +35,7 @@ env:
     # TODO This needs to be removed once the PR containing this is merged
     - TARGET_GIT_BRANCH=travis
 
-script: true
-
-after_script:
+script:
  # Log in to Docker Hub, needed to mirror images built on quay.io
  - docker login -e abesto0+docker-zipkin-deployer@gmail.com -u dockerzipkindeployer -p "$DOCKERHUB_PASSWORD"
  - docker pull openzipkin/zipkin-base
