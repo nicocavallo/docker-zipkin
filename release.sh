@@ -74,9 +74,8 @@ bump-zipkin-version () {
         git commit -m "Bump ZIPKIN_VERSION to $version"
         git push
     else
-        echo "Dockerfiles were already pinned to version ${version} of the base image, no commit to make"
+        echo "ZIPKIN_VERSION was already ${version} of the base image, no commit to make"
     fi
-
 }
 
 create-and-push-tag () {
@@ -185,16 +184,26 @@ sync-quay-tags () {
 bump-dockerfiles () {
     local tag="$1"; shift
     local images="$@"
+    local modified=false
+
     for image in $images; do
         echo "Bumping base image of $image to $tag"
         dockerfile="${image}/Dockerfile"
         FROM_line_without_tag="$(grep -E '^FROM ' "$dockerfile" | cut -f1 -d:)"
         sed -i.bak -e "s~^FROM .*~${FROM_line_without_tag}:${tag}~" "$dockerfile"
+        if ! diff "${dockerfile}.bak" "${dockerfile}" > /dev/null; then
+            modified=true
+        fi
         rm "${dockerfile}.bak"
         git add "$dockerfile"
     done
-    git commit -m "Bump base image version of services to ${tag}"
-    git push
+
+    if "$modified"; then
+        git commit -m "Bump base image version of services to ${tag}"
+        git push
+    else
+        echo "Dockerfiles were already pinned to version ${tag} of the base image, no commit to make"
+    fi
 }
 
 sync-to-dockerhub () {
