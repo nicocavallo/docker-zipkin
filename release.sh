@@ -63,7 +63,7 @@ bump-zipkin-version () {
         echo "Bumping ZIPKIN_VERSION in the Dockerfile of $image..."
         dockerfile="${image}/Dockerfile"
         sed -i.bak -e "s/ENV ZIPKIN_VERSION .*/ENV ZIPKIN_VERSION ${version}/" "$dockerfile"
-        if diff "${dockerfile}.bak" "${dockerfile}" > /dev/null; then
+        if ! diff "${dockerfile}.bak" "${dockerfile}" > /dev/null; then
             modified=true
         fi
         rm "${dockerfile}.bak"
