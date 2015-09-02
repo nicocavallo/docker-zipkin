@@ -19,6 +19,7 @@ install:
 # The release process pushes to GitHub multiple times; will use these credentials
 before_script:
   - openssl aes-256-cbc -K $encrypted_1f60458c9a9e_key -iv $encrypted_1f60458c9a9e_iv -in .travis/deploy_key.enc -out .travis/deploy_key -d
+  - eval "$(ssh-agent)"
   - ssh-add .travis/deploy_key
   - docker login -e abesto0+docker-zipkin-deployer@gmail.com -u dockerzipkindeployer -p "$DOCKERHUB_PASSWORD"
 
