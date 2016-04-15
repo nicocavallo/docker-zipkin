@@ -12,7 +12,6 @@ services:
     container_name: cassandra
     ports:
       - 9042:9042
-  
   # The collector process is used for legacy zipkin instrumentation, which log via
   # scribe. It can also poll kafka, when the KAFKA_ZOOKEEPER variable is set.
   collector:
