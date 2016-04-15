@@ -48,6 +48,7 @@ services:
       - 9900:9900
     depends_on:
       - storage
+      - query
   web:
     image: openzipkin/zipkin-web:1.39.4
     environment:
