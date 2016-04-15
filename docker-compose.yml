@@ -17,6 +17,7 @@ services:
   # scribe. It can also poll kafka, when the KAFKA_ZOOKEEPER variable is set.
   collector:
     image: openzipkin/zipkin-collector:1.39.4
+    container_name: collector
     environment:
       - TRANSPORT_TYPE=scribe
       - STORAGE_TYPE=cassandra
